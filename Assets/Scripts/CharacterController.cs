@@ -9,7 +9,7 @@ public class CharacterController : MonoBehaviour
     {
         if (isMoving)
         {
-            transform.Translate(Vector3.right * moveSpeed * Time.deltaTime);
+            transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);
         }
     }
 

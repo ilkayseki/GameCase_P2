@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum Direction
 {
@@ -10,10 +11,10 @@ public enum Direction
     Back
 }
 
-public class PieceController2 : MonoBehaviour
+public class PieceController : MonoBehaviour
 {
     [SerializeField] private ColorController colorData;
-    //[SerializeField] private CameraManager cameraManager;
+   
     [SerializeField] private Transform reference;
     [SerializeField] private MeshRenderer referenceMesh;
 
@@ -24,6 +25,11 @@ public class PieceController2 : MonoBehaviour
 
     [SerializeField] [Range(1, 5)] private float speed;
     [SerializeField] [Range(1, 2)] private float limit;
+    
+    [SerializeField] [Range(0, 1)] private float musicTolerance;
+
+    [SerializeField] [Range(0, 1)] private float endTolerance;
+
 
     private bool _isForward = true; // Oyuncunun ileriye doğru sürekli hareket etmesi
     private bool _isAxisX = true; // X ekseninde sağa sola hareket
@@ -31,19 +37,6 @@ public class PieceController2 : MonoBehaviour
     private bool _isStop;
 
     private int _score;
-    //[SerializeField] private TextMeshProUGUI textScore;
-
-    /*
-    private void Start()
-    {
-        textScore.text = "";
-    }
-
-    private void UpdateText()
-    {
-        textScore.SetText(_score.ToString());
-    }
-*/
 
     private void LateUpdate()
     {
@@ -69,6 +62,7 @@ public class PieceController2 : MonoBehaviour
 
     private void DivideObject(bool isAxisX, float value)
     {
+        
         bool isFirstFalling = value > 0;
 
         var falling = Instantiate(fallingPrefab).transform;
@@ -93,7 +87,11 @@ public class PieceController2 : MonoBehaviour
         var fallingMultiply = (isFirstFalling ? 1 : -1);
         if (isAxisX) fallingPosition.x += (fallingSize.x / 2) * fallingMultiply;
         else fallingPosition.z += (fallingSize.z / 2) * fallingMultiply;
+        
         falling.position = fallingPosition;
+        
+        
+
 
         var standPosition = GetPositionEdge(referenceMesh, !isFirstFalling ? minDirection : maxDirection);
         var standMultiply = (!isFirstFalling ? 1 : -1);
@@ -101,7 +99,6 @@ public class PieceController2 : MonoBehaviour
         else standPosition.z += (standSize.z / 2) * standMultiply;
         stand.position = new Vector3(last.position.x, standPosition.y, standPosition.z);
 
-        
         // Renk
         var color = colorData.GetColor(_score);
         stand.GetComponent<MeshRenderer>().material.color = color;
@@ -144,6 +141,7 @@ public class PieceController2 : MonoBehaviour
     }
 
 
+    
     public void OnClick()
     {
         _isStop = true;
@@ -156,11 +154,24 @@ public class PieceController2 : MonoBehaviour
             return;
         }
 
-        DivideObject(_isAxisX, _isAxisX ? distance.x : distance.z);
-
-        // Reset
-        //_isAxisX = !_isAxisX;
-
+        if (Math.Abs(last.position.x-transform.position.x)<musicTolerance)// Tolerance değeri
+        {
+            Debug.LogError("Tolerance : " + (last.position.x-transform.position.x).ToString());
+            var stand = Instantiate(standPrefab).transform;
+            stand.localScale = last.localScale;
+            stand.position = new Vector3(last.transform.position.x,last.transform.position.y,last.transform.position.z+last.localScale.z);
+            
+            var color = colorData.GetColor(_score);
+            stand.GetComponent<MeshRenderer>().material.color = color;
+            referenceMesh.material.color = color;
+            
+            last = stand;
+        }
+        else
+        {
+            DivideObject(_isAxisX, _isAxisX ? distance.x : distance.z);
+        }
+        
         // Önceki küpün x pozisyonunu al
         float previousXPosition = last.position.x;
 
@@ -175,9 +186,7 @@ public class PieceController2 : MonoBehaviour
         _isStop = false;
 
         _score++;
-        //UpdateText();
-
-        //cameraManager.Up();
+        
     }
 
 
@@ -186,6 +195,8 @@ public class PieceController2 : MonoBehaviour
         var origin = _isAxisX ? transform.localScale.x : transform.localScale.z;
         var current = _isAxisX ? Mathf.Abs(distance.x) : Mathf.Abs(distance.z);
 
-        return current >= origin;
+        return current +endTolerance >= origin;
     }
+    
+    
 }
