@@ -1,4 +1,3 @@
-
 using System;
 using TMPro;
 using UnityEngine;
@@ -13,7 +12,7 @@ public enum Direction
 
 public class PieceController2 : MonoBehaviour
 {
-    // [SerializeField] private ColorController colorData;
+    [SerializeField] private ColorController colorData;
     //[SerializeField] private CameraManager cameraManager;
     [SerializeField] private Transform reference;
     [SerializeField] private MeshRenderer referenceMesh;
@@ -100,15 +99,15 @@ public class PieceController2 : MonoBehaviour
         var standMultiply = (!isFirstFalling ? 1 : -1);
         if (isAxisX) standPosition.x += (standSize.x / 2) * standMultiply;
         else standPosition.z += (standSize.z / 2) * standMultiply;
-        stand.position = new Vector3(last.position.x,standPosition.y,standPosition.z);
+        stand.position = new Vector3(last.position.x, standPosition.y, standPosition.z);
 
-        /*
+        
         // Renk
         var color = colorData.GetColor(_score);
         stand.GetComponent<MeshRenderer>().material.color = color;
         falling.GetComponent<MeshRenderer>().material.color = color;
         referenceMesh.material.color = color;
-        */
+        
         last = stand;
     }
 
@@ -150,13 +149,13 @@ public class PieceController2 : MonoBehaviour
         _isStop = true;
 
         var distance = last.position - transform.position;
-        /*
         if (IsFail(distance))
         {
-            Debug.Log("game over");
+            Debug.Log("Game Over");
+            // Burada oyunu durdurabilir veya bir oyun sonu ekranı gösterebilirsiniz.
             return;
         }
-        */
+
         DivideObject(_isAxisX, _isAxisX ? distance.x : distance.z);
 
         // Reset
