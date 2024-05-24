@@ -1,8 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 public class ColorController : MonoBehaviour
 {
+	[Inject]
+	private GameManager gameManager;
+	
 	[SerializeField] private ColorData colorData;
 	[SerializeField] private MeshRenderer referenceMesh;
 	[SerializeField] private List<MeshRenderer> pivots;
@@ -53,4 +57,13 @@ public class ColorController : MonoBehaviour
 		var currentScore = score % colorData.scoreLimit;
 		return Color.Lerp(baseColor, targetColor, (float)currentScore / colorData.scoreLimit);
 	}
+	
+	public void UpdateColor(Transform prefab)
+	{
+		var color = GetColor(gameManager.GetScore());
+		prefab.GetComponent<MeshRenderer>().material.color = color;
+		referenceMesh.material.color = color;
+	}
+	
+	
 }

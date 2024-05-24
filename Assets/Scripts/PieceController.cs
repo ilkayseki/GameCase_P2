@@ -1,7 +1,6 @@
 using System;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
+using Zenject;
 
 public enum Direction
 {
@@ -13,105 +12,196 @@ public enum Direction
 
 public class PieceController : MonoBehaviour
 {
-    [SerializeField] private ColorController colorData;
-   
+    [Inject]
+    private GameManager gameManager;
+    [Inject]
+    private ColorController colorController;
+    
+    
+    
     [SerializeField] private Transform reference;
     [SerializeField] private MeshRenderer referenceMesh;
-
     [SerializeField] private GameObject fallingPrefab;
     [SerializeField] private GameObject standPrefab;
-
     [SerializeField] private Transform last;
-
     [SerializeField] [Range(1, 5)] private float speed;
     [SerializeField] [Range(1, 2)] private float limit;
-    
     [SerializeField] [Range(0, 1)] private float musicTolerance;
-
     [SerializeField] [Range(0, 1)] private float endTolerance;
 
-
-    private bool _isForward = true; // Oyuncunun ileriye doğru sürekli hareket etmesi
-    private bool _isAxisX = true; // X ekseninde sağa sola hareket
-
+    private bool _isForward = true;
+    private bool _isAxisX = true;
     private bool _isStop;
 
-    private int _score;
+    #region GarbageCollecttor
 
+    private Vector3 position;
+    private int direction;
+    private float move;
+
+
+    private Vector3 distance;
+    private Transform stand;
+    private float previousXPosition;
+    private Vector3 newPosition;
+    private bool isFirstFalling;
+    
+    private Transform falling;
+    
+    private Direction minDirection;
+    private Direction maxDirection;
+    
+    
+    private Vector3 fallingSize;
+    private Vector3 standSize;
+
+    private Vector3 fallingPosition;
+    private int fallingMultiply;
+    
+    private Vector3 standPosition;
+    private int standMultiply;
+    
+    private Vector3 extents;
+    private float origin;
+    private float current;
+
+
+    #endregion
+    
+    
     private void LateUpdate()
     {
         if (_isStop) return;
-        var position = transform.position;
-        var direction = _isForward ? 1 : -1;
-        var move = speed * Time.deltaTime * direction;
-        // X ekseninde sağa sola hareket
-        if (_isAxisX) position.x += move;
+        MovePiece();
+    }
 
-        // Limit ve yön değiştirme
-        if (_isAxisX)
+    private void MovePiece()
+    {
+        position = transform.position;
+        direction = _isForward ? 1 : -1;
+        move = speed * Time.deltaTime * direction;
+        position = UpdatePosition(position, move);
+
+        if (_isAxisX && (position.x < -limit || position.x > limit))
         {
-            if (position.x < -limit || position.x > limit)
-            {
-                position.x = Mathf.Clamp(position.x, -limit, limit);
-                _isForward = !_isForward;
-            }
+            position.x = Mathf.Clamp(position.x, -limit, limit);
+            _isForward = !_isForward;
         }
 
         transform.position = position;
     }
 
+    private Vector3 UpdatePosition(Vector3 position, float move)
+    {
+        if (_isAxisX) position.x += move;
+        return position;
+    }
+
+    
+    public void OnClick()
+    {
+        SetIsStop(true);
+        distance = last.position - transform.position;
+        if (IsFail(distance))
+        {
+            gameManager.GameOver();
+            return;
+        }
+
+        if (Math.Abs(last.position.x - transform.position.x) < musicTolerance)
+        {
+            HandlePerfectPlacement();
+        }
+        else
+        {
+            DivideObject(_isAxisX, _isAxisX ? distance.x : distance.z);
+        }
+
+        MoveToNextPosition();
+        SetIsStop(false);
+        gameManager.SetScore();
+    }
+
+    private void SetIsStop(bool statue)
+    {
+        _isStop = statue;
+    }
+    
+    private void HandlePerfectPlacement()
+    {
+       
+        stand = Instantiate(standPrefab).transform;
+        stand.localScale = last.localScale;
+        stand.position = new Vector3(last.transform.position.x, last.transform.position.y, last.transform.position.z + last.localScale.z);
+
+        colorController.UpdateColor(stand);
+
+        last = stand;
+    }
+
+    private void MoveToNextPosition()
+    {
+        previousXPosition = last.position.x;
+        newPosition = new Vector3(previousXPosition, transform.position.y, transform.position.z);
+        newPosition.z += reference.localScale.z;
+        transform.position = newPosition;
+        transform.localScale = last.localScale;
+    }
+
+
+ 
+    
     private void DivideObject(bool isAxisX, float value)
     {
+        isFirstFalling = value > 0;
+        falling = Instantiate(fallingPrefab).transform;
+        stand = Instantiate(standPrefab).transform;
+
+        UpdateSizes(isAxisX, value, falling, stand);
+
+         minDirection = isAxisX ? Direction.Left : Direction.Back;
+         maxDirection = isAxisX ? Direction.Right : Direction.Front;
+
+        UpdatePositions(isAxisX, value, isFirstFalling, falling, stand, minDirection, maxDirection);
         
-        bool isFirstFalling = value > 0;
+        colorController.UpdateColor(falling);
+        colorController.UpdateColor(stand);
 
-        var falling = Instantiate(fallingPrefab).transform;
-        var stand = Instantiate(standPrefab).transform;
+        last = stand;
+    }
 
-        // Boyut
-        var fallingSize = reference.localScale;
+    private void UpdateSizes(bool isAxisX, float value, Transform falling, Transform stand)
+    {
+        fallingSize = reference.localScale;
         if (isAxisX) fallingSize.x = Math.Abs(value);
         else fallingSize.z = Math.Abs(value);
         falling.localScale = fallingSize;
 
-        var standSize = reference.localScale;
+        standSize = reference.localScale;
         if (isAxisX) standSize.x = reference.localScale.x - Math.Abs(value);
         else standSize.z = reference.localScale.z - Math.Abs(value);
         stand.localScale = standSize;
-
-        var minDirection = isAxisX ? Direction.Left : Direction.Back;
-        var maxDirection = isAxisX ? Direction.Right : Direction.Front;
-
-        // Pozisyon
-        var fallingPosition = GetPositionEdge(referenceMesh, isFirstFalling ? minDirection : maxDirection);
-        var fallingMultiply = (isFirstFalling ? 1 : -1);
-        if (isAxisX) fallingPosition.x += (fallingSize.x / 2) * fallingMultiply;
-        else fallingPosition.z += (fallingSize.z / 2) * fallingMultiply;
-        
-        falling.position = fallingPosition;
-        
-        
-
-
-        var standPosition = GetPositionEdge(referenceMesh, !isFirstFalling ? minDirection : maxDirection);
-        var standMultiply = (!isFirstFalling ? 1 : -1);
-        if (isAxisX) standPosition.x += (standSize.x / 2) * standMultiply;
-        else standPosition.z += (standSize.z / 2) * standMultiply;
-        stand.position = new Vector3(last.position.x, standPosition.y, standPosition.z);
-
-        // Renk
-        var color = colorData.GetColor(_score);
-        stand.GetComponent<MeshRenderer>().material.color = color;
-        falling.GetComponent<MeshRenderer>().material.color = color;
-        referenceMesh.material.color = color;
-        
-        last = stand;
     }
 
+    private void UpdatePositions(bool isAxisX, float value, bool isFirstFalling, Transform falling, Transform stand, Direction minDirection, Direction maxDirection)
+    {
+        fallingPosition = GetPositionEdge(referenceMesh, isFirstFalling ? minDirection : maxDirection);
+        fallingMultiply = isFirstFalling ? 1 : -1;
+        if (isAxisX) fallingPosition.x += (falling.localScale.x / 2) * fallingMultiply;
+        else fallingPosition.z += (falling.localScale.z / 2) * fallingMultiply;
+        falling.position = fallingPosition;
+
+        standPosition = GetPositionEdge(referenceMesh, !isFirstFalling ? minDirection : maxDirection);
+        standMultiply = !isFirstFalling ? 1 : -1;
+        if (isAxisX) standPosition.x += (stand.localScale.x / 2) * standMultiply;
+        else standPosition.z += (stand.localScale.z / 2) * standMultiply;
+        stand.position = new Vector3(last.position.x, standPosition.y, standPosition.z);
+    }
+    
     private Vector3 GetPositionEdge(MeshRenderer mesh, Direction direction)
     {
-        var extents = mesh.bounds.extents;
-        var position = mesh.transform.position;
+        extents = mesh.bounds.extents;
+        position = mesh.transform.position;
 
         switch (direction)
         {
@@ -132,71 +222,10 @@ public class PieceController : MonoBehaviour
         return position;
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            OnClick();
-        }
-    }
-
-
-    
-    public void OnClick()
-    {
-        _isStop = true;
-
-        var distance = last.position - transform.position;
-        if (IsFail(distance))
-        {
-            Debug.Log("Game Over");
-            // Burada oyunu durdurabilir veya bir oyun sonu ekranı gösterebilirsiniz.
-            return;
-        }
-
-        if (Math.Abs(last.position.x-transform.position.x)<musicTolerance)// Tolerance değeri
-        {
-            Debug.LogError("Tolerance : " + (last.position.x-transform.position.x).ToString());
-            var stand = Instantiate(standPrefab).transform;
-            stand.localScale = last.localScale;
-            stand.position = new Vector3(last.transform.position.x,last.transform.position.y,last.transform.position.z+last.localScale.z);
-            
-            var color = colorData.GetColor(_score);
-            stand.GetComponent<MeshRenderer>().material.color = color;
-            referenceMesh.material.color = color;
-            
-            last = stand;
-        }
-        else
-        {
-            DivideObject(_isAxisX, _isAxisX ? distance.x : distance.z);
-        }
-        
-        // Önceki küpün x pozisyonunu al
-        float previousXPosition = last.position.x;
-
-        // Yeni konum, önceki küpün x pozisyonu ile aynı olacak
-        Vector3 newPosition = new Vector3(previousXPosition, transform.position.y, transform.position.z);
-        // Yeni küpü z ekseninde ilerisine koy
-        newPosition.z += reference.localScale.z; 
-        transform.position = newPosition;
-
-        transform.localScale = last.localScale;
-
-        _isStop = false;
-
-        _score++;
-        
-    }
-
-
     private bool IsFail(Vector3 distance)
     {
-        var origin = _isAxisX ? transform.localScale.x : transform.localScale.z;
-        var current = _isAxisX ? Mathf.Abs(distance.x) : Mathf.Abs(distance.z);
-
-        return current +endTolerance >= origin;
+        origin = _isAxisX ? transform.localScale.x : transform.localScale.z;
+        current = _isAxisX ? Mathf.Abs(distance.x) : Mathf.Abs(distance.z);
+        return current + endTolerance >= origin;
     }
-    
-    
 }
