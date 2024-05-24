@@ -10,7 +10,18 @@ public class GameManager : MonoBehaviour
     private PieceController pieceController;
 
     private bool _isGame = true;
+    
     private int _score=0;
+
+    private void OnEnable()
+    {
+        pieceController.Scored += SetScore;
+    }
+
+    private void OnDisable()
+    {
+        pieceController.Scored -= SetScore;
+    }
 
     private void Update()
     {

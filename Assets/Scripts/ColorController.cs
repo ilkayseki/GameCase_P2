@@ -7,6 +7,10 @@ public class ColorController : MonoBehaviour
 	[Inject]
 	private GameManager gameManager;
 	
+	[Inject]
+	private PieceController pieceController;
+	
+	
 	[SerializeField] private ColorData colorData;
 	[SerializeField] private MeshRenderer referenceMesh;
 	[SerializeField] private List<MeshRenderer> pivots;
@@ -60,9 +64,25 @@ public class ColorController : MonoBehaviour
 	
 	public void UpdateColor(Transform prefab)
 	{
+		prefab.GetComponent<MeshRenderer>().material.color = referenceMesh.material.color;
+		
+	}
+	
+	public void SetNewColor()
+	{
 		var color = GetColor(gameManager.GetScore());
-		prefab.GetComponent<MeshRenderer>().material.color = color;
 		referenceMesh.material.color = color;
+		
+	}
+	
+	private void OnEnable()
+	{
+		pieceController.Scored += SetNewColor;
+	}
+
+	private void OnDisable()
+	{
+		pieceController.Scored -= SetNewColor;
 	}
 	
 	

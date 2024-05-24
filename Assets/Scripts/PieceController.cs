@@ -2,27 +2,13 @@ using System;
 using UnityEngine;
 using Zenject;
 
-public enum Direction
-{
-    Left,
-    Right,
-    Front,
-    Back
-}
-
 public class PieceController : MonoBehaviour
 {
-    [Inject]
-    private GameManager gameManager;
-    [Inject]
-    private ColorController colorController;
-    
-    
-    
+    [Inject] private GameManager gameManager;
+    [Inject] private ColorController colorController;
+
     [SerializeField] private Transform reference;
     [SerializeField] private MeshRenderer referenceMesh;
-    [SerializeField] private GameObject fallingPrefab;
-    [SerializeField] private GameObject standPrefab;
     [SerializeField] private Transform last;
     [SerializeField] [Range(1, 5)] private float speed;
     [SerializeField] [Range(1, 2)] private float limit;
@@ -33,43 +19,41 @@ public class PieceController : MonoBehaviour
     private bool _isAxisX = true;
     private bool _isStop;
 
-    #region GarbageCollecttor
+    public event Action Scored; 
+
+    #region GarbageCollector
 
     private Vector3 position;
     private int direction;
     private float move;
-
 
     private Vector3 distance;
     private Transform stand;
     private float previousXPosition;
     private Vector3 newPosition;
     private bool isFirstFalling;
-    
+
     private Transform falling;
-    
+
     private Direction minDirection;
     private Direction maxDirection;
-    
-    
+
     private Vector3 fallingSize;
     private Vector3 standSize;
 
     private Vector3 fallingPosition;
     private int fallingMultiply;
-    
+
     private Vector3 standPosition;
     private int standMultiply;
-    
+
     private Vector3 extents;
     private float origin;
     private float current;
 
-
     #endregion
-    
-    
-    private void LateUpdate()
+
+    private void FixedUpdate()
     {
         if (_isStop) return;
         MovePiece();
@@ -97,7 +81,6 @@ public class PieceController : MonoBehaviour
         return position;
     }
 
-    
     public void OnClick()
     {
         SetIsStop(true);
@@ -118,19 +101,20 @@ public class PieceController : MonoBehaviour
         }
 
         MoveToNextPosition();
+        
+        Scored.Invoke();
+
         SetIsStop(false);
-        gameManager.SetScore();
     }
 
-    private void SetIsStop(bool statue)
+    private void SetIsStop(bool status)
     {
-        _isStop = statue;
+        _isStop = status;
     }
-    
+
     private void HandlePerfectPlacement()
     {
-       
-        stand = Instantiate(standPrefab).transform;
+        stand = ObjectPoolManager.Instance.GetStandPiece();
         stand.localScale = last.localScale;
         stand.position = new Vector3(last.transform.position.x, last.transform.position.y, last.transform.position.z + last.localScale.z);
 
@@ -148,22 +132,19 @@ public class PieceController : MonoBehaviour
         transform.localScale = last.localScale;
     }
 
-
- 
-    
     private void DivideObject(bool isAxisX, float value)
     {
         isFirstFalling = value > 0;
-        falling = Instantiate(fallingPrefab).transform;
-        stand = Instantiate(standPrefab).transform;
+        falling = ObjectPoolManager.Instance.GetFallingPiece();
+        stand = ObjectPoolManager.Instance.GetStandPiece();
 
         UpdateSizes(isAxisX, value, falling, stand);
 
-         minDirection = isAxisX ? Direction.Left : Direction.Back;
-         maxDirection = isAxisX ? Direction.Right : Direction.Front;
+        minDirection = isAxisX ? Direction.Left : Direction.Back;
+        maxDirection = isAxisX ? Direction.Right : Direction.Front;
 
         UpdatePositions(isAxisX, value, isFirstFalling, falling, stand, minDirection, maxDirection);
-        
+
         colorController.UpdateColor(falling);
         colorController.UpdateColor(stand);
 
@@ -197,7 +178,7 @@ public class PieceController : MonoBehaviour
         else standPosition.z += (stand.localScale.z / 2) * standMultiply;
         stand.position = new Vector3(last.position.x, standPosition.y, standPosition.z);
     }
-    
+
     private Vector3 GetPositionEdge(MeshRenderer mesh, Direction direction)
     {
         extents = mesh.bounds.extents;
@@ -228,4 +209,12 @@ public class PieceController : MonoBehaviour
         current = _isAxisX ? Mathf.Abs(distance.x) : Mathf.Abs(distance.z);
         return current + endTolerance >= origin;
     }
+}
+
+public enum Direction
+{
+    Left,
+    Right,
+    Front,
+    Back
 }
