@@ -7,7 +7,7 @@ public class PathManager : MonoBehaviour
 
     public List<Transform> platforms2 = new List<Transform>();
 
-    void Start()
+    void Awake()
     {
         foreach (Transform platform in platforms2)
         {

@@ -211,7 +211,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &26137687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -231,6 +231,8 @@ MonoBehaviour:
   limit: 1.5
   musicTolerance: 0.059
   endTolerance: 0.213
+  fallingPrefab: {fileID: 0}
+  standPrefab: {fileID: 0}
 --- !u!23 &26137691
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -667,6 +669,7 @@ GameObject:
   - component: {fileID: 99319971}
   - component: {fileID: 99319970}
   - component: {fileID: 99319969}
+  - component: {fileID: 99319973}
   m_Layer: 0
   m_Name: Stack (1)
   m_TagString: Untagged
@@ -715,7 +718,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 11b8c1fd3ca69044fa3f81d12c1fa7b8, type: 2}
+  - {fileID: 2100000, guid: 230e660cda31be842a184ddef8a79a9e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -754,12 +757,27 @@ Transform:
   m_GameObject: {fileID: 99319968}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalPosition: {x: -0.72, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 962333398}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &99319973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99319968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3520a5352c85b8409458febf2b30b20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  purpleCube: {fileID: 255588659}
+  standPrefab: {fileID: 8706418089548491620, guid: 95582bc7d2fbafc45ba7f440b6d7f31d, type: 3}
+  fallingPrefab: {fileID: 8809212823538829765, guid: d742524c905283d458d57219cc40ae26, type: 3}
 --- !u!1 &100908343
 GameObject:
   m_ObjectHideFlags: 0
@@ -1482,7 +1500,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 11b8c1fd3ca69044fa3f81d12c1fa7b8, type: 2}
+  - {fileID: 2100000, guid: 644e0d1dd3e717e43b18768b7fc7532f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8088,7 +8106,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1892958462
 Transform:
   m_ObjectHideFlags: 0
@@ -8233,7 +8251,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1898365397
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8753,7 +8771,7 @@ Transform:
   m_GameObject: {fileID: 1951203062}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -9.01, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

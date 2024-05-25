@@ -5,11 +5,9 @@ using Random = UnityEngine.Random;
 
 public class PieceController : MonoBehaviour
 {
-    [Inject] private GameManager gameManager;
     [Inject] private ColorController colorController;
     [Inject] private ObjectPoolManager objectPoolManager;
     [Inject] private PathManager pathManager;
-
 
     [SerializeField] private Transform reference;
     [SerializeField] private MeshRenderer referenceMesh;
@@ -19,14 +17,12 @@ public class PieceController : MonoBehaviour
     
     [Tooltip("Müzik toleransı: Objelerin müzikle mükemmel bir şekilde yerleştirildiği kabul edilen tolerans seviyesi [Önerilen 0.059]")]
     [SerializeField] [Range(0, 0.8f)] private float musicTolerance;
-    [Tooltip("Bitiş toleransı: Oyun objelerinin tamamen yerleştirildiği kabul edilen tolerans seviyesi [Önerilen 0.213   Bu değer müzik töleransından küçük olmamalıdır]")]
+    [Tooltip("Bitiş toleransı: Oyun objelerinin tamamen yerleştirildiği kabul edilen tolerans seviyesi [Önerilen 0.213 Bu değer müzik töleransından küçük olmamalıdır]")]
     [SerializeField] [Range(0, 0.8f)] private float endTolerance;
 
-    private bool _isForward = true;
-    private bool _isAxisX = true;
-    private bool _isStop;
+   
     
-    #region GarbageCollector
+    #region Variables
 
     private Vector3 position;
     private int direction;
@@ -55,6 +51,10 @@ public class PieceController : MonoBehaviour
     private Vector3 extents;
     private float origin;
     private float current;
+    
+    private bool _isForward = true;
+    private bool _isStop;
+
 
     #endregion
 
@@ -63,36 +63,47 @@ public class PieceController : MonoBehaviour
         if (_isStop) return;
         MovePiece();
     }
-
+    
     private void MovePiece()
     {
         position = transform.position;
+        
         direction = _isForward ? 1 : -1;
         move = speed * Time.deltaTime * direction;
         position = UpdatePosition(position, move);
-
-        if (_isAxisX && (position.x < -limit || position.x > limit))
+        
+        // Başlangıç pozisyonu ve limitler arasında kontrol yap
+        float minXLimit = last.position.x - limit;
+        float maxXLimit = last.position.x + limit;
+    
+        if (position.x < minXLimit)
         {
-            position.x = Mathf.Clamp(position.x, -limit, limit);
-            _isForward = !_isForward;
+            position.x = minXLimit;
+            _isForward = true; // Sınıra ulaşıldığında ileriye doğru hareket et
         }
-
+        else if (position.x > maxXLimit)
+        {
+            position.x = maxXLimit;
+            _isForward = false; // Sınıra ulaşıldığında geriye doğru hareket et
+        }
+    
         transform.position = position;
     }
 
     private Vector3 UpdatePosition(Vector3 position, float move)
     {
-        if (_isAxisX) position.x += move;
+        position.x += move;
         return position;
     }
 
     public void OnClick()
     {
         IsStopHandler(true);
-
+        CalculateDistance();
+        
         if (IsFail(CalculateDistance()))
         {
-            gameManager.GameOver();
+            //gameManager.GameOver();
             return;
         }
 
@@ -102,7 +113,7 @@ public class PieceController : MonoBehaviour
         }
         else
         {
-            DivideObject(_isAxisX, _isAxisX ? distance.x : distance.z);
+            DivideObject(CalculateDistance().x);
         }
 
         MoveToNextPosition();
@@ -144,18 +155,24 @@ public class PieceController : MonoBehaviour
         transform.localScale = last.localScale;
     }
 
-    private void DivideObject(bool isAxisX, float value)
+    public GameObject fallingPrefab;
+    public GameObject standPrefab;
+    private void DivideObject(float value)
     {
         isFirstFalling = value > 0;
-        falling = objectPoolManager.GetFallingPiece();
-        stand = objectPoolManager.GetStandPiece();
+    
+        //falling = objectPoolManager.GetFallingPiece();
+        //stand = objectPoolManager.GetStandPiece();
 
-        UpdateSizes(isAxisX, value, falling, stand);
+         falling = Instantiate(fallingPrefab).transform;
+         stand = Instantiate(standPrefab).transform;
+        
+        UpdateSizes(value, falling, stand); // Boyutları güncelle
 
-        minDirection = isAxisX ? Direction.Left : Direction.Back;
-        maxDirection = isAxisX ? Direction.Right : Direction.Front;
+        minDirection = Direction.Left;
+        maxDirection = Direction.Right;
 
-        UpdatePositions(isAxisX, value, isFirstFalling, falling, stand, minDirection, maxDirection);
+        UpdatePositions( isFirstFalling, falling, stand, minDirection, maxDirection); // Pozisyonları güncelle
 
         colorController.UpdateColor(falling);
         colorController.UpdateColor(stand);
@@ -163,31 +180,29 @@ public class PieceController : MonoBehaviour
         last = stand;
     }
 
-    private void UpdateSizes(bool isAxisX, float value, Transform falling, Transform stand)
+
+
+    private void UpdateSizes(float value, Transform falling, Transform stand)
     {
-        fallingSize = reference.localScale;
-        if (isAxisX) fallingSize.x = Math.Abs(value);
-        else fallingSize.z = Math.Abs(value);
+        fallingSize = transform.localScale;
+        fallingSize.x = Math.Abs(value);
         falling.localScale = fallingSize;
 
-        standSize = reference.localScale;
-        if (isAxisX) standSize.x = reference.localScale.x - Math.Abs(value);
-        else standSize.z = reference.localScale.z - Math.Abs(value);
+        standSize = transform.localScale;
+        standSize.x = reference.localScale.x - Math.Abs(value);
         stand.localScale = standSize;
     }
 
-    private void UpdatePositions(bool isAxisX, float value, bool isFirstFalling, Transform falling, Transform stand, Direction minDirection, Direction maxDirection)
+    private void UpdatePositions(bool isFirstFalling, Transform falling, Transform stand, Direction minDirection, Direction maxDirection)
     {
         fallingPosition = GetPositionEdge(referenceMesh, isFirstFalling ? minDirection : maxDirection);
         fallingMultiply = isFirstFalling ? 1 : -1;
-        if (isAxisX) fallingPosition.x += (falling.localScale.x / 2) * fallingMultiply;
-        else fallingPosition.z += (falling.localScale.z / 2) * fallingMultiply;
+        fallingPosition.x += (falling.localScale.x / 2) * fallingMultiply;
         falling.position = fallingPosition;
 
         standPosition = GetPositionEdge(referenceMesh, !isFirstFalling ? minDirection : maxDirection);
         standMultiply = !isFirstFalling ? 1 : -1;
-        if (isAxisX) standPosition.x += (stand.localScale.x / 2) * standMultiply;
-        else standPosition.z += (stand.localScale.z / 2) * standMultiply;
+        standPosition.x += (stand.localScale.x / 2) * standMultiply;
         stand.position = new Vector3(transform.position.x, standPosition.y, standPosition.z);
     }
 
@@ -217,11 +232,10 @@ public class PieceController : MonoBehaviour
 
     private bool IsFail(Vector3 distance)
     {
-        origin = _isAxisX ? transform.localScale.x : transform.localScale.z;
-        current = _isAxisX ? Mathf.Abs(distance.x) : Mathf.Abs(distance.z);
+        origin = transform.localScale.x ;
+        current = Mathf.Abs(distance.x) ;
         return current + endTolerance >= origin;
     }
-
 }
 
 public enum Direction
