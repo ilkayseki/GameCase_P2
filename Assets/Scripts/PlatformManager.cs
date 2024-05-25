@@ -19,7 +19,7 @@ public class PlatformManager : MonoBehaviour
         {
             if (currentPlatform != null)
             {
-                StopPlatform();
+                //StopPlatform();
                 TrimPlatform();
                 spawnPosition = currentPlatform.transform.position;
                 spawnPosition.z += currentPlatform.transform.localScale.z; // Bir sonraki platformun spawn pozisyonu
@@ -41,7 +41,7 @@ public class PlatformManager : MonoBehaviour
             var platformMovement = currentPlatform.GetComponent<CharacterController>();
             if (platformMovement != null)
             {
-                platformMovement.Stop();
+               // platformMovement.Stop();
             }
         }
     }

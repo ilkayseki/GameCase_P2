@@ -8,6 +8,8 @@ public class PieceController : MonoBehaviour
     [Inject] private GameManager gameManager;
     [Inject] private ColorController colorController;
     [Inject] private ObjectPoolManager objectPoolManager;
+    [Inject] private PathManager pathManager;
+
 
     [SerializeField] private Transform reference;
     [SerializeField] private MeshRenderer referenceMesh;
@@ -87,8 +89,8 @@ public class PieceController : MonoBehaviour
     public void OnClick()
     {
         IsStopHandler(true);
-        distance = last.position - transform.position;
-        if (IsFail(distance))
+
+        if (IsFail(CalculateDistance()))
         {
             gameManager.GameOver();
             return;
@@ -105,9 +107,16 @@ public class PieceController : MonoBehaviour
 
         MoveToNextPosition();
         
-       colorController.SetNewColor();
+        colorController.SetNewColor();
 
+        pathManager.AddPlatform(stand.transform);
+        
         IsStopHandler(false);
+    }
+
+    private Vector3 CalculateDistance()
+    {
+        return distance = last.position - transform.position;
     }
 
     private void IsStopHandler(bool status)
@@ -119,7 +128,7 @@ public class PieceController : MonoBehaviour
     {
         stand = objectPoolManager.GetStandPiece();
         stand.localScale = last.localScale;
-        stand.position = new Vector3(last.transform.position.x, last.transform.position.y, last.transform.position.z + last.localScale.z);
+        stand.position = new Vector3(transform.position.x, last.transform.position.y, last.transform.position.z + last.localScale.z);
 
         colorController.UpdateColor(stand);
 
@@ -179,7 +188,7 @@ public class PieceController : MonoBehaviour
         standMultiply = !isFirstFalling ? 1 : -1;
         if (isAxisX) standPosition.x += (stand.localScale.x / 2) * standMultiply;
         else standPosition.z += (stand.localScale.z / 2) * standMultiply;
-        stand.position = new Vector3(last.position.x, standPosition.y, standPosition.z);
+        stand.position = new Vector3(transform.position.x, standPosition.y, standPosition.z);
     }
 
     private Vector3 GetPositionEdge(MeshRenderer mesh, Direction direction)
