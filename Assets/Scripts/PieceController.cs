@@ -1,26 +1,29 @@
 using System;
 using UnityEngine;
 using Zenject;
+using Random = UnityEngine.Random;
 
 public class PieceController : MonoBehaviour
 {
     [Inject] private GameManager gameManager;
     [Inject] private ColorController colorController;
+    [Inject] private ObjectPoolManager objectPoolManager;
 
     [SerializeField] private Transform reference;
     [SerializeField] private MeshRenderer referenceMesh;
     [SerializeField] private Transform last;
     [SerializeField] [Range(1, 5)] private float speed;
     [SerializeField] [Range(1, 2)] private float limit;
-    [SerializeField] [Range(0, 1)] private float musicTolerance;
-    [SerializeField] [Range(0, 1)] private float endTolerance;
+    
+    [Tooltip("Müzik toleransı: Objelerin müzikle mükemmel bir şekilde yerleştirildiği kabul edilen tolerans seviyesi [Önerilen 0.059]")]
+    [SerializeField] [Range(0, 0.8f)] private float musicTolerance;
+    [Tooltip("Bitiş toleransı: Oyun objelerinin tamamen yerleştirildiği kabul edilen tolerans seviyesi [Önerilen 0.213   Bu değer müzik töleransından küçük olmamalıdır]")]
+    [SerializeField] [Range(0, 0.8f)] private float endTolerance;
 
     private bool _isForward = true;
     private bool _isAxisX = true;
     private bool _isStop;
-
-    public event Action Scored; 
-
+    
     #region GarbageCollector
 
     private Vector3 position;
@@ -83,7 +86,7 @@ public class PieceController : MonoBehaviour
 
     public void OnClick()
     {
-        SetIsStop(true);
+        IsStopHandler(true);
         distance = last.position - transform.position;
         if (IsFail(distance))
         {
@@ -102,19 +105,19 @@ public class PieceController : MonoBehaviour
 
         MoveToNextPosition();
         
-        Scored.Invoke();
+       colorController.SetNewColor();
 
-        SetIsStop(false);
+        IsStopHandler(false);
     }
 
-    private void SetIsStop(bool status)
+    private void IsStopHandler(bool status)
     {
         _isStop = status;
     }
 
     private void HandlePerfectPlacement()
     {
-        stand = ObjectPoolManager.Instance.GetStandPiece();
+        stand = objectPoolManager.GetStandPiece();
         stand.localScale = last.localScale;
         stand.position = new Vector3(last.transform.position.x, last.transform.position.y, last.transform.position.z + last.localScale.z);
 
@@ -126,7 +129,7 @@ public class PieceController : MonoBehaviour
     private void MoveToNextPosition()
     {
         previousXPosition = last.position.x;
-        newPosition = new Vector3(previousXPosition, transform.position.y, transform.position.z);
+        newPosition = new Vector3(previousXPosition + (Random.value > 0.5f ? limit : -limit), transform.position.y, transform.position.z);
         newPosition.z += reference.localScale.z;
         transform.position = newPosition;
         transform.localScale = last.localScale;
@@ -135,8 +138,8 @@ public class PieceController : MonoBehaviour
     private void DivideObject(bool isAxisX, float value)
     {
         isFirstFalling = value > 0;
-        falling = ObjectPoolManager.Instance.GetFallingPiece();
-        stand = ObjectPoolManager.Instance.GetStandPiece();
+        falling = objectPoolManager.GetFallingPiece();
+        stand = objectPoolManager.GetStandPiece();
 
         UpdateSizes(isAxisX, value, falling, stand);
 
@@ -209,6 +212,7 @@ public class PieceController : MonoBehaviour
         current = _isAxisX ? Mathf.Abs(distance.x) : Mathf.Abs(distance.z);
         return current + endTolerance >= origin;
     }
+
 }
 
 public enum Direction

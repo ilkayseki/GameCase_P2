@@ -9,19 +9,7 @@ public class GameManager : MonoBehaviour
     [Inject]
     private PieceController pieceController;
 
-    private bool _isGame = true;
-    
-    private int _score=0;
-
-    private void OnEnable()
-    {
-        pieceController.Scored += SetScore;
-    }
-
-    private void OnDisable()
-    {
-        pieceController.Scored -= SetScore;
-    }
+    private bool isGame = true;
 
     private void Update()
     {
@@ -34,16 +22,8 @@ public class GameManager : MonoBehaviour
 
     public void GameOver()
     {
-        
-    }
-
-    public void SetScore()
-    {
-        _score++;
+        Debug.LogError("Game OVER");
+        isGame = false;
     }
     
-    public int GetScore()
-    {
-        return _score;
-    }
 }

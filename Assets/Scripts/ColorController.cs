@@ -17,6 +17,8 @@ public class ColorController : MonoBehaviour
 
 	private List<Color> _listColor;
 
+	private int colorCount = 0;
+	
 	private void Start()
 	{
 		_listColor = new List<Color>();
@@ -70,20 +72,12 @@ public class ColorController : MonoBehaviour
 	
 	public void SetNewColor()
 	{
-		var color = GetColor(gameManager.GetScore());
+		colorCount++;
+		var color = GetColor(colorCount);
 		referenceMesh.material.color = color;
 		
 	}
 	
-	private void OnEnable()
-	{
-		pieceController.Scored += SetNewColor;
-	}
-
-	private void OnDisable()
-	{
-		pieceController.Scored -= SetNewColor;
-	}
 	
 	
 }

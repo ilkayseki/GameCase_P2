@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class ObjectPoolManager : MonoBehaviour
 {
-    public static ObjectPoolManager Instance { get; private set; }
 
     [SerializeField] private GameObject fallingPrefab;
     [SerializeField] private GameObject standPrefab;
@@ -13,15 +12,8 @@ public class ObjectPoolManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            InitializePools();
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        InitializePools();
+
     }
 
     private void InitializePools()
