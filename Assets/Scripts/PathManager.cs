@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PathManager : MonoBehaviour
 {
     public Queue<Transform> platforms = new Queue<Transform>();
 
-    public List<Transform> platforms2 = new List<Transform>();
+    public List<Transform> pivotPlatforms = new List<Transform>();
 
+    public GameObject LastPlatformFinish;
+    
     void Awake()
     {
-        foreach (Transform platform in platforms2)
+        foreach (Transform platform in pivotPlatforms)
         {
             platforms.Enqueue(platform);
         }
@@ -25,7 +28,6 @@ public class PathManager : MonoBehaviour
         if (platforms.Count > 0)
         {
             Transform firstPlatform = platforms.Dequeue();
-            //Destroy(firstPlatform.gameObject);
         }
     }
 
@@ -33,12 +35,23 @@ public class PathManager : MonoBehaviour
     {
         if (platforms.Count > 0)
         {
+            
             return platforms.Peek();
         }
         else
         {
-            Debug.Log("Hata: Kuyrukta başka platform yok.");
+            //Debug.Log("Hata: Kuyrukta başka platform yok.");
             return null;
         }
     }
+
+    public void SetLastPlatform(GameObject last)
+    {
+        LastPlatformFinish = last;
+    }
+    public GameObject GetLastPlatform()
+    {
+        return LastPlatformFinish;
+    }
+    
 }

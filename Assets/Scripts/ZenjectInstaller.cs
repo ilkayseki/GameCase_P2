@@ -13,6 +13,9 @@ public class ZenjectInstaller : MonoInstaller
         Container.Bind<ColorController>().FromComponentInHierarchy().AsSingle();
         Container.Bind<ObjectPoolManager>().FromComponentInHierarchy().AsSingle();
         Container.Bind<PathManager>().FromComponentInHierarchy().AsSingle();
+        Container.Bind<LevelManager>().FromComponentInHierarchy().AsSingle();
+        Container.Bind<PlayerMovement>().FromComponentInHierarchy().AsSingle();
+        Container.Bind<AnimatorController>().FromComponentInHierarchy().AsSingle();
 
 
         //Container.BindFactory<Cell, Cell.Factory>().FromComponentInNewPrefab(cellPrefab); // Cell prefab'ını bağlayın

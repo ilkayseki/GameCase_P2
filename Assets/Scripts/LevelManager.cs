@@ -1,30 +1,108 @@
 using UnityEngine;
+using Zenject;
 
-public class PlaceFinishPrefab : MonoBehaviour
+public class LevelManager : MonoBehaviour
 {
-    public GameObject cubeObject; // Küp objesi
-    public GameObject finishPrefab; // Yerleştirilecek finish prefab
+    [Inject]
+    private PieceController pieceController;
+    
+    [Inject]
+    private ObjectPoolManager objectPoolManager;
+    
+    [Inject]
+    private GameManager gameManager;
+    
+    private int levelCount;
+    
+    private int finishCount;
+    
+    private Transform pieceControllerTransform;
 
-    void Start()
+    private Transform finishPrefab;
+    
+    public LevelData[] levels;
+    
+    void Awake()
     {
-        // Küp objesinin boyutlarını al
-        float cubeDepth = cubeObject.transform.localScale.z;
+        LoadAllLevelData();
+        CreateLevel();
+        SetCounts();
+    }
 
-        // finishPrefab objesinin boyutlarını al
+    private void CreateLevel()
+    {
+        pieceControllerTransform = pieceController.GetPieceControllerTransform();
+        
+        finishPrefab = objectPoolManager.GetFinishPlatform();
+        
+        float pieceControllerSizeZ = pieceControllerTransform.localScale.z;
+        
         Vector3 finishBounds = finishPrefab.GetComponent<MeshRenderer>().bounds.size;
         float finishDepth = finishBounds.z;
 
-        // Yeni pozisyonu hesapla
         Vector3 newPosition = new Vector3(
-            cubeObject.transform.position.x,
-            cubeObject.transform.position.y,
-            cubeObject.transform.position.z +
-            (cubeDepth * 3) + // 3 küp boyu ileride
-            (cubeDepth / 2) + // küpün yarısı kadar daha
+            pieceControllerTransform.position.x,
+            pieceControllerTransform.position.y + (finishBounds.y / 2),
+            pieceControllerTransform.position.z +
+            (pieceControllerSizeZ * (finishCount - 1)) + // finishCount kadar ileride
+            (pieceControllerSizeZ / 2) + // küpün yarısı kadar daha
             (finishDepth / 2) // finishPrefab'in yarısı kadar daha
         );
 
-        // finishPrefab'i yeni pozisyona yerleştir
         finishPrefab.transform.position = newPosition;
+    }
+
+    void LoadAllLevelData()
+    {
+        levels = Resources.LoadAll<LevelData>("Scriptable");
+
+        levelCount = 0;
+
+        if (levels.Length > 0)
+        {
+            finishCount = levels[levelCount].finishCount;
+        }
+        else
+        {
+            Debug.LogError("No level data found in Resources/Scriptable.");
+        }
+    }
+
+    private void SetCounts()
+    {
+        gameManager.SetClickCount(finishCount);
+        pieceController.SetMoveCount(finishCount);
+    }
+
+    public void StartNewGame()
+    {
+        IncreaseLevelCount();
+        LoadLevelData();
+        CreateLevel();
+        SetCounts();
+    }
+
+    private void IncreaseLevelCount()
+    {
+        levelCount++;
+        if (levelCount >= levels.Length)
+        {
+            levelCount = 0;
+        }
+    }
+
+    void LoadLevelData()
+    {
+        levels = Resources.LoadAll<LevelData>("Scriptable");
+
+        if (levels.Length > 0)
+        {
+            if (levelCount >= levels.Length) levelCount = 0;
+            finishCount = levels[levelCount].finishCount;
+        }
+        else
+        {
+            Debug.LogError("No level data found in Resources/Scriptable.");
+        }
     }
 }

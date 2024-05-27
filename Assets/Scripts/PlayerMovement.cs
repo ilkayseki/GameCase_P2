@@ -1,53 +1,141 @@
+using System;
 using System.Collections;
 using UnityEngine;
+using Zenject;
 
 public class PlayerMovement : MonoBehaviour
 {
     public float forwardSpeed = 5f;
     public PathManager pathManager;
-    private Transform currentTarget;
+    public Transform currentTarget;
+    private bool isMoving = true;
 
+    private bool isMovingToFinish = false;
+    
+    [Inject]
+    private GameManager gameManager;
+    
     void Start()
     {
-        if (pathManager.platforms.Count > 0)
+        SetNextTarget();
+    }
+
+    private void IsMovingHandler(bool t)
+    {
+        isMoving = t;
+    }
+    
+    private void IsMovingToFinishHandler(bool t)
+    {
+        isMovingToFinish = t;
+    }
+    
+    private bool CanMove()
+    {
+        if (isMoving)
         {
-            SetNextTarget();
-            StartCoroutine(MoveTowardsPlatform());
+            return true;
+        }
+
+        return false;
+    }
+    
+    void FixedUpdate()
+    {
+        if (!CanMove()) return;
+
+        if(!isMovingToFinish)
+            MoveToPlatform();
+        else
+        {
+            MoveToFinish();
         }
     }
 
+    private void MoveToPlatform()
+    {
+        if (currentTarget == null)
+        {
+            SetNextTarget();
+        }
+
+        if (currentTarget != null)
+        {
+            Vector3 targetPosition = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
+
+            if (Vector3.Distance(transform.position, targetPosition) > 0.1f)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, targetPosition, forwardSpeed * Time.deltaTime);
+            }
+            else
+            {
+                
+                    SetNextTarget();
+                    
+            } 
+        }
+        else
+        {
+            // Hedef yoksa z ekseninde ilerlemeye devam et
+            transform.position += Vector3.forward * forwardSpeed * Time.deltaTime;
+            //Debug.LogError("Target Null");
+
+        }
+    }
+    
+    
+    private void MoveToFinish()
+    {
+        if (currentTarget == null)
+        {
+            SetNextTarget();
+        }
+        
+        Vector3 targetPosition = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
+        if (Vector3.Distance(transform.position, targetPosition) > 0.1f)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, targetPosition, forwardSpeed * Time.deltaTime);
+            }
+            else
+            {
+                
+                    IsMovingHandler(false);
+                    gameManager.GameFinished();
+                    Debug.Log("Tebrikler");
+            }
+                
+    }
+    
     void SetNextTarget()
     {
         currentTarget = pathManager.GetNextPlatform();
         if (currentTarget != null)
         {
+            //Debug.LogError("Target != Null");
             pathManager.RemoveFirstPlatform();
         }
     }
 
-    IEnumerator MoveTowardsPlatform()
-    {
-        while (currentTarget != null)
-        {
-            Vector3 targetPosition = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
-            
-            while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
-            {
-                transform.position = Vector3.MoveTowards(transform.position, targetPosition, forwardSpeed * Time.deltaTime);
-                yield return null;
-            }
-
-            SetNextTarget();
-        }
-
-        Debug.Log("Hata: Kuyrukta başka platform yok.");
-    }
-
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Platform"))
+        if (collision.gameObject.CompareTag("Finish"))
         {
-            // İsteğe bağlı: Platformla çarpışma sırasında başka bir işlem yapmak isterseniz buraya ekleyebilirsiniz
+            pathManager.AddPlatform(collision.transform);
+            
+            IsMovingToFinishHandler(true);
+            
+            pathManager.SetLastPlatform(collision.gameObject);
         }
     }
+
+
+    public void StartNewGame()
+    {
+        IsMovingHandler(true);
+        IsMovingToFinishHandler(false);
+        SetNextTarget();
+
+    }
+    
+    
 }

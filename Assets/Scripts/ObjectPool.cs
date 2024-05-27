@@ -40,11 +40,6 @@ public class ObjectPool<T> where T : Component
         Debug.Log("Object pool has been refilled.");
     }
 
-    public void ReturnToPool(T obj)
-    {
-        obj.gameObject.SetActive(false);
-    }
-
     private void AddObjects(int count)
     {
         for (int i = 0; i < count; i++)
