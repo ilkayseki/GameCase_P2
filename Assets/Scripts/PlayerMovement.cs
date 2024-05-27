@@ -6,8 +6,12 @@ using Zenject;
 public class PlayerMovement : MonoBehaviour
 {
     public float forwardSpeed = 5f;
+    
+    [Inject]
     public PathManager pathManager;
+    
     public Transform currentTarget;
+    
     private bool isMoving = true;
 
     private bool isMovingToFinish = false;
@@ -99,7 +103,6 @@ public class PlayerMovement : MonoBehaviour
         {
             // Hedef yoksa z ekseninde ilerlemeye devam et
             transform.position += Vector3.forward * forwardSpeed * Time.deltaTime;
-            //Debug.LogError("Target Null");
 
         }
     }
@@ -122,7 +125,6 @@ public class PlayerMovement : MonoBehaviour
                 
                     IsMovingHandler(false);
                     gameManager.GameFinished();
-                    Debug.Log("Tebrikler");
             }
                 
     }
@@ -132,7 +134,6 @@ public class PlayerMovement : MonoBehaviour
         currentTarget = pathManager.GetNextPlatform();
         if (currentTarget != null)
         {
-            //Debug.LogError("Target != Null");
             pathManager.RemoveFirstPlatform();
         }
     }
@@ -154,7 +155,6 @@ public class PlayerMovement : MonoBehaviour
     {
         IsMovingHandler(true);
         IsMovingToFinishHandler(false);
-        //SetNextTarget();
 
     }
 

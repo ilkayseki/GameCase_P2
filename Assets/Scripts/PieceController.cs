@@ -56,10 +56,15 @@ public class PieceController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_isStop || !canMove()) return;
+        if (GetIsStop() || !canMove()) return;
         MovePiece();
     }
 
+    private bool GetIsStop()
+    {
+        return _isStop;
+    }
+    
     public void StartNewGame(GameObject finishPrefab)
     {
         IsStopHandler(true);
@@ -124,7 +129,6 @@ public class PieceController : MonoBehaviour
 
         if (IsFail())
         {
-            // Debug.LogError("Yandın");
             return;
         }
         
@@ -167,50 +171,50 @@ public class PieceController : MonoBehaviour
 
     void SplitCube()
     {
-        Vector3 purpleCubePosition = last.transform.position;
-        Vector3 purpleCubeSize = last.transform.localScale;
+        Vector3 firstPosition = last.transform.position;
+        Vector3 firstSize = last.transform.localScale;
 
-        Vector3 yellowCubePosition = transform.position;
-        Vector3 yellowCubeSize = transform.localScale;
+        Vector3 secondPosition = transform.position;
+        Vector3 secondSize = transform.localScale;
 
-        float yellowCubeRightEdge = yellowCubePosition.x + (yellowCubeSize.x / 2);
-        float yellowCubeLeftEdge = yellowCubePosition.x - (yellowCubeSize.x / 2);
-        float purpleCubeRightEdge = purpleCubePosition.x + (purpleCubeSize.x / 2);
-        float purpleCubeLeftEdge = purpleCubePosition.x - (purpleCubeSize.x / 2);
+        float secondRightEdge = secondPosition.x + (secondSize.x / 2);
+        float secondLeftEdge = secondPosition.x - (secondSize.x / 2);
+        float firstRightEdge = firstPosition.x + (firstSize.x / 2);
+        float firstLeftEdge = firstPosition.x - (firstSize.x / 2);
 
-        if (IsWithinTolerance(yellowCubeRightEdge, yellowCubeLeftEdge, purpleCubeRightEdge, purpleCubeLeftEdge))
+        if (IsWithinTolerance(secondRightEdge, secondLeftEdge, firstRightEdge, firstLeftEdge))
         {
-            HandleWithinTolerance(yellowCubeSize, yellowCubePosition, purpleCubePosition.x);
+            HandleWithinTolerance(secondSize, secondPosition, firstPosition.x);
 
             _musicManager.PlayHighPitchMusic();
 
         }
-        else if (IsCoveringCompletely(yellowCubeRightEdge, yellowCubeLeftEdge, purpleCubeRightEdge, purpleCubeLeftEdge))
+        else if (IsCoveringCompletely(secondRightEdge, secondLeftEdge, firstRightEdge, firstLeftEdge))
         {
             // Debug.LogError("IsCoveringCompletely");
             _musicManager.PlayNormalMusic();
-            HandleCompleteCover(yellowCubeSize, purpleCubeSize, purpleCubePosition, yellowCubePosition);
+            HandleCompleteCover(secondSize, firstSize, firstPosition, secondPosition);
         }
-        else if (yellowCubeRightEdge > purpleCubeRightEdge)
+        else if (secondRightEdge > firstRightEdge)
         {
             // Debug.LogError("yellowCubeRightEdge > purpleCubeRightEdge");
             _musicManager.PlayNormalMusic();
 
-            HandleRightOverlap(yellowCubeRightEdge, yellowCubeLeftEdge, purpleCubeRightEdge, yellowCubeSize, yellowCubePosition);
+            HandleRightOverlap(secondRightEdge, secondLeftEdge, firstRightEdge, secondSize, secondPosition);
         }
-        else if (yellowCubeLeftEdge < purpleCubeLeftEdge)
+        else if (secondLeftEdge < firstLeftEdge)
         {
             // Debug.LogError("yellowCubeLeftEdge < purpleCubeLeftEdge");
             _musicManager.PlayNormalMusic();
 
-            HandleLeftOverlap(yellowCubeLeftEdge, yellowCubeRightEdge, purpleCubeLeftEdge, yellowCubeSize, yellowCubePosition);
+            HandleLeftOverlap(secondLeftEdge, secondRightEdge, firstLeftEdge, secondSize, secondPosition);
         }
         else
         {
             // Debug.LogError("Else");
             _musicManager.PlayNormalMusic();
 
-            HandlePartialOverlap(yellowCubeSize, yellowCubePosition);
+            HandlePartialOverlap(secondSize, secondPosition);
         }
     }
 
@@ -301,12 +305,6 @@ public class PieceController : MonoBehaviour
             falling.transform.localScale = new Vector3(sizeX, originalSize.y, originalSize.z);
         }
     }
-    
-    private Vector3 CalculateDistance()
-    {
-        distance =  transform.position-last.position ;
-        return distance;
-    }
 
     private void IsStopHandler(bool status)
     {
@@ -344,28 +342,16 @@ public class PieceController : MonoBehaviour
         if (transform.localScale.x < 0.01)
             return false;
         
-        // Mor küpün bounds değerlerini al
         Bounds lastBounds = last.GetComponent<Renderer>().bounds;
-        // Diğer küpün bounds değerlerini al
         Bounds currentBounds = GetComponent<Renderer>().bounds;
 
-        // Küplerin X eksenindeki minimum ve maksimum değerlerini al
         float lastMinX = lastBounds.min.x;
         float lastMaxX = lastBounds.max.x;
         float currentMinX = currentBounds.min.x;
         float currentMaxX = currentBounds.max.x;
-
-        // Debug.LogError("lastMinX: " + lastMinX);
-        // Debug.LogError("lastMaxX: " + lastMaxX);
-        // Debug.LogError("currentMinX: " + currentMinX);
-        // Debug.LogError("currentMaxX: " + currentMaxX);
-
-        // Küplerin çakışıp çakışmadığını kontrol et
+        
         bool isOverlapping = (currentMaxX >= lastMinX && currentMinX <= lastMaxX);
-
-        // Debug.LogError("isOverlapping: " + isOverlapping);
-    
-        // Çakışma yoksa fail dön
+        
         return !isOverlapping;
     }
     

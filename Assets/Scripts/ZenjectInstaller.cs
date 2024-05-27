@@ -19,7 +19,6 @@ public class ZenjectInstaller : MonoInstaller
         Container.Bind<MusicManager>().FromComponentInHierarchy().AsSingle();
         Container.Bind<UIManager>().FromComponentInHierarchy().AsSingle();
 
-        //Container.BindFactory<Cell, Cell.Factory>().FromComponentInNewPrefab(cellPrefab); // Cell prefab'ını bağlayın
     }
 
 
