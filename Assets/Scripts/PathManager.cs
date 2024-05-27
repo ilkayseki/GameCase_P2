@@ -20,8 +20,6 @@ public class PathManager : MonoBehaviour
     
     public void AddPlatform(Transform platform)
     {
-        Debug.Log("Hain");
-
         platforms.Enqueue(platform);
     }
 
@@ -37,13 +35,11 @@ public class PathManager : MonoBehaviour
     {
         if (platforms.Count > 0)
         {
-            Debug.Log("Kuyrukta başka  var.");
 
             return platforms.Peek();
         }
         else
         {
-            Debug.Log("Hata: Kuyrukta başka platform yok.");
             return null;
         }
     }

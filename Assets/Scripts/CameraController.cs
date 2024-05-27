@@ -4,9 +4,10 @@ using Cinemachine;
 public class CameraController : MonoBehaviour
 {
     public CinemachineVirtualCamera virtualCamera;
-    public Transform target; 
-    public float rotationSpeed = 20f; 
-    public float transitionSpeed = 2f;
+    public Transform target; // Takip edilecek karakter
+    public Vector3 offset; // Kamera ile karakter arasındaki ofset
+    public float rotationSpeed = 20f; // Dönme hızı
+    public float transitionSpeed = 2f; // Geçiş hızı
 
     private Vector3 initialOffset;
     private bool isRotatingAround = false;
@@ -34,15 +35,18 @@ public class CameraController : MonoBehaviour
     {
         if (isRotatingAround)
         {
+            // Kamera karakterin etrafında dönsün
             virtualCamera.transform.RotateAround(target.position, Vector3.up, rotationSpeed * Time.deltaTime);
         }
 
         if (isTransitioningBack)
         {
+            // Kamerayı karakterin güncel pozisyonuna göre eski ofset pozisyonuna yavaşça geri döndür
             Vector3 desiredPosition = target.position + initialOffset;
             virtualCamera.transform.position = Vector3.Lerp(virtualCamera.transform.position, desiredPosition, transitionSpeed * Time.deltaTime);
             virtualCamera.transform.LookAt(target);
 
+            // Eğer kamera hedef pozisyona yeterince yaklaştıysa geçişi durdur
             if (Vector3.Distance(virtualCamera.transform.position, desiredPosition) < 0.01f)
             {
                 isTransitioningBack = false;
@@ -50,6 +54,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
+            // Kamera hedefe bakmaya devam etsin
             virtualCamera.transform.LookAt(target);
         }
     }

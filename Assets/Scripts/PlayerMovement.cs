@@ -6,9 +6,7 @@ using Zenject;
 public class PlayerMovement : MonoBehaviour
 {
     public float forwardSpeed = 5f;
-    [Inject]
     public PathManager pathManager;
-    
     public Transform currentTarget;
     private bool isMoving = true;
 
@@ -36,7 +34,6 @@ public class PlayerMovement : MonoBehaviour
         SetNextTarget();
 
         InvokeRepeating(nameof(CheckAcceleration), 0f, 1f);
-        InvokeRepeating(nameof(CheckRotation), 0f, 1f);
 
     }
     
@@ -45,17 +42,6 @@ public class PlayerMovement : MonoBehaviour
         if(rigidBody.velocity.y<-5) 
             gameManager.GameOver();
         
-    }
-    void CheckRotation()
-    {
-        // Dönüş açısını eulerAngles olarak alıyoruz
-        Vector3 rotation = transform.eulerAngles;
-        
-        // x ve z açılarının belirli bir aralığın dışında olup olmadığını kontrol ediyoruz
-        if ((rotation.x > 10 && rotation.x < 350) || (rotation.z > 15 && rotation.z < 345))
-        {
-            gameManager.GameOver();
-        }
     }
 
     private void IsMovingHandler(bool t)
@@ -104,7 +90,9 @@ public class PlayerMovement : MonoBehaviour
             }
             else
             {
-                SetNextTarget();
+                
+                    SetNextTarget();
+                    
             } 
         }
         else
@@ -166,6 +154,7 @@ public class PlayerMovement : MonoBehaviour
     {
         IsMovingHandler(true);
         IsMovingToFinishHandler(false);
+        //SetNextTarget();
 
     }
 

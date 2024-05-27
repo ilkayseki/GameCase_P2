@@ -22,11 +22,6 @@ public class LevelManager : MonoBehaviour
     
     public LevelData[] levels;
     
-    private float pieceControllerSizeZ;
-    private float finishDepth;
-    private Vector3 finishBounds;
-    private Vector3 newPosition;
-
     void Awake()
     {
         LoadAllLevelData();
@@ -40,12 +35,12 @@ public class LevelManager : MonoBehaviour
         
         finishPrefab = objectPoolManager.GetFinishPlatform();
         
-        pieceControllerSizeZ = pieceControllerTransform.localScale.z;
+        float pieceControllerSizeZ = pieceControllerTransform.localScale.z;
         
-        finishBounds = finishPrefab.GetComponent<MeshRenderer>().bounds.size;
-        finishDepth = finishBounds.z;
+        Vector3 finishBounds = finishPrefab.GetComponent<MeshRenderer>().bounds.size;
+        float finishDepth = finishBounds.z;
 
-        newPosition = new Vector3(
+        Vector3 newPosition = new Vector3(
             pieceControllerTransform.position.x,
             pieceControllerTransform.position.y ,
             pieceControllerTransform.position.z +
