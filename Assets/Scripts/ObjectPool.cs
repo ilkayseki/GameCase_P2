@@ -9,6 +9,8 @@ public class ObjectPool<T> where T : Component
     private readonly List<T> objects = new List<T>();
     private readonly Transform parent;
     private int index = 0;
+    private T obj;
+    private T[] objectsOfTypeT;
 
     public ObjectPool(T prefab, int initialSize, Transform parent = null)
     {
@@ -25,7 +27,7 @@ public class ObjectPool<T> where T : Component
             RefillPool();
         }
 
-        var obj = objects[index];
+        obj = objects[index];
         obj.gameObject.SetActive(true);
         index = (index + 1) % objects.Count; // Rotate index to next object
         return obj;
@@ -33,7 +35,7 @@ public class ObjectPool<T> where T : Component
 
     private void RefillPool()
     {
-        var objectsOfTypeT = Object.FindObjectsOfType<T>();
+        objectsOfTypeT = Object.FindObjectsOfType<T>();
         Array.Sort(objectsOfTypeT, (x, y) => x.transform.position.z.CompareTo(y.transform.position.z));
 
         objects.AddRange(objectsOfTypeT);
@@ -44,7 +46,7 @@ public class ObjectPool<T> where T : Component
     {
         for (int i = 0; i < count; i++)
         {
-            var obj = Object.Instantiate(prefab, parent);
+            obj = Object.Instantiate(prefab, parent);
             obj.gameObject.SetActive(false);
             objects.Add(obj);
         }

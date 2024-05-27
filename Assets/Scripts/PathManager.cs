@@ -20,6 +20,8 @@ public class PathManager : MonoBehaviour
     
     public void AddPlatform(Transform platform)
     {
+        Debug.Log("Hain");
+
         platforms.Enqueue(platform);
     }
 
@@ -35,12 +37,13 @@ public class PathManager : MonoBehaviour
     {
         if (platforms.Count > 0)
         {
-            
+            Debug.Log("Kuyrukta başka  var.");
+
             return platforms.Peek();
         }
         else
         {
-            //Debug.Log("Hata: Kuyrukta başka platform yok.");
+            Debug.Log("Hata: Kuyrukta başka platform yok.");
             return null;
         }
     }
@@ -52,6 +55,15 @@ public class PathManager : MonoBehaviour
     public GameObject GetLastPlatform()
     {
         return LastPlatformFinish;
+    }
+
+    public void GameFinished()
+    {
+        while (platforms.Count > 0)
+        {
+            Transform firstPlatform = platforms.Dequeue();
+        }
+
     }
     
 }

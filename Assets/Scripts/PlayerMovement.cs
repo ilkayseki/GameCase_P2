@@ -15,9 +15,33 @@ public class PlayerMovement : MonoBehaviour
     [Inject]
     private GameManager gameManager;
     
+    private Rigidbody rigidBody;
+    
+    private Vector3 targetPosition;
+
+    private void Awake()
+    {
+        Init();
+    }
+
+    private void Init()
+    {
+        rigidBody = GetComponent<Rigidbody>();
+    }
+
     void Start()
     {
         SetNextTarget();
+
+        InvokeRepeating(nameof(CheckAcceleration), 0f, 1f);
+
+    }
+    
+    void CheckAcceleration()
+    {
+        if(rigidBody.velocity.y<-5) 
+            gameManager.GameOver();
+        
     }
 
     private void IsMovingHandler(bool t)
@@ -32,12 +56,9 @@ public class PlayerMovement : MonoBehaviour
     
     private bool CanMove()
     {
-        if (isMoving)
-        {
-            return true;
-        }
+        if (isMoving) return true;
 
-        return false;
+            return false;
     }
     
     void FixedUpdate()
@@ -61,7 +82,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (currentTarget != null)
         {
-            Vector3 targetPosition = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
+            targetPosition = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
 
             if (Vector3.Distance(transform.position, targetPosition) > 0.1f)
             {
@@ -91,7 +112,7 @@ public class PlayerMovement : MonoBehaviour
             SetNextTarget();
         }
         
-        Vector3 targetPosition = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
+        targetPosition = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
         if (Vector3.Distance(transform.position, targetPosition) > 0.1f)
             {
                 transform.position = Vector3.MoveTowards(transform.position, targetPosition, forwardSpeed * Time.deltaTime);
@@ -133,9 +154,13 @@ public class PlayerMovement : MonoBehaviour
     {
         IsMovingHandler(true);
         IsMovingToFinishHandler(false);
-        SetNextTarget();
+        //SetNextTarget();
 
     }
-    
+
+    public void GameFinished()
+    {
+        SetNextTarget();
+    }
     
 }

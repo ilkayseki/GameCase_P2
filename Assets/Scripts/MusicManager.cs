@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class MusicController : MonoBehaviour
+public class MusicManager : MonoBehaviour
 {
     public AudioClip normalMusic;
 
@@ -11,21 +11,9 @@ public class MusicController : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         audioSource.clip = normalMusic;
     }
+    
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            PlayHighPitchMusic();
-        }
-
-        if (Input.GetKeyUp(KeyCode.M))
-        {
-            PlayNormalMusic();
-        }
-    }
-
-    void PlayHighPitchMusic()
+    public void PlayHighPitchMusic()
     {
         if (!audioSource.isPlaying) // Eğer ses çalmıyorsa
         {
@@ -34,7 +22,7 @@ public class MusicController : MonoBehaviour
         }
     }
 
-    void PlayNormalMusic()
+    public void PlayNormalMusic()
     {
         if (!audioSource.isPlaying) // Eğer ses çalmıyorsa
         {

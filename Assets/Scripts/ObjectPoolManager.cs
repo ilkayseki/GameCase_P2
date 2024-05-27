@@ -12,6 +12,7 @@ public class ObjectPoolManager : MonoBehaviour
     private ObjectPool<Transform> fallingPool;
     private ObjectPool<Transform> standPool;
     private ObjectPool<Transform> finishPool;
+    private Transform fallingPiece;
 
 
     private void Awake()
@@ -30,7 +31,7 @@ public class ObjectPoolManager : MonoBehaviour
 
     public Transform GetFallingPiece()
     {
-        var fallingPiece = fallingPool.Get();
+        fallingPiece = fallingPool.Get();
 
         ResetVelocity(fallingPiece);
 

@@ -1,24 +1,25 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 using Random = UnityEngine.Random;
 
 public class PieceController : MonoBehaviour
 {
-    [Inject] private ColorController colorController;
+    [Inject] private ColorManager _colorManager;
     [Inject] private ObjectPoolManager objectPoolManager;
     [Inject] private PathManager pathManager;
     [Inject] private GameManager gameManager;
+    [Inject] private MusicManager _musicManager;
+
 
     [SerializeField] private Transform reference;
     [SerializeField] private Transform last;
     [SerializeField] [Range(1, 5)] private float speed;
-    [SerializeField] [Range(1, 2)] private float limit;
-    [SerializeField] [Range(0, 0.8f)] private float endTolerance;
-    [SerializeField] [Range(0, 0.8f)] private float tolerance;
+    [SerializeField] [Range(1, 2)] private float limitX;
+    [SerializeField] [Range(0, 0.2f)] private float tolerance;
 
     
-
     #region Variables
 
     private Vector3 position;
@@ -77,11 +78,12 @@ public class PieceController : MonoBehaviour
         transform.position = newPosition;
         last = finishPrefab.transform;
 
-        Debug.LogError("StartNewGame");
+        // Debug.LogError("StartNewGame");
         
         IsStopHandler(false);
         
     }
+    
 
     private void MovePiece()
     {
@@ -91,8 +93,8 @@ public class PieceController : MonoBehaviour
         move = speed * Time.deltaTime * direction;
         position = UpdatePosition(position, move);
         
-        float minXLimit = last.position.x - limit;
-        float maxXLimit = last.position.x + limit;
+        float minXLimit = last.position.x - limitX;
+        float maxXLimit = last.position.x + limitX;
     
         if (position.x < minXLimit)
         {
@@ -118,17 +120,21 @@ public class PieceController : MonoBehaviour
     {
         IsStopHandler(true);
         
-        IncreaseMoveCount();
+        DecreaseClickCount();
+
+        Debug.LogError("1");
 
         if (IsFail())
         {
-            Debug.LogError("Yandın");
+            // Debug.LogError("Yandın");
             return;
         }
         
         SplitCube();
         
         ChangeColors();
+
+        Debug.LogError("2");
 
         AddPlatformToObjectPool();
         
@@ -137,7 +143,7 @@ public class PieceController : MonoBehaviour
         IsStopHandler(false);
     }
 
-    private void IncreaseMoveCount()
+    private void DecreaseClickCount()
     {
         moveCount--;
     }
@@ -152,7 +158,7 @@ public class PieceController : MonoBehaviour
         if (canMove())
         {
             MoveToNextPosition();
-            colorController.SetNewColor();
+            _colorManager.SetNewColor();
         }
         else
         {
@@ -177,30 +183,35 @@ public class PieceController : MonoBehaviour
 
         if (IsWithinTolerance(yellowCubeRightEdge, yellowCubeLeftEdge, purpleCubeRightEdge, purpleCubeLeftEdge))
         {
-            Debug.LogError("IsWithinTolerance");
             HandleWithinTolerance(yellowCubeSize, yellowCubePosition, purpleCubePosition.x);
+
+            _musicManager.PlayHighPitchMusic();
+
         }
         else if (IsCoveringCompletely(yellowCubeRightEdge, yellowCubeLeftEdge, purpleCubeRightEdge, purpleCubeLeftEdge))
         {
-            Debug.LogError("IsCoveringCompletely");
-
+            // Debug.LogError("IsCoveringCompletely");
+            _musicManager.PlayNormalMusic();
             HandleCompleteCover(yellowCubeSize, purpleCubeSize, purpleCubePosition, yellowCubePosition);
         }
         else if (yellowCubeRightEdge > purpleCubeRightEdge)
         {
-            Debug.LogError("yellowCubeRightEdge > purpleCubeRightEdge");
+            // Debug.LogError("yellowCubeRightEdge > purpleCubeRightEdge");
+            _musicManager.PlayNormalMusic();
 
             HandleRightOverlap(yellowCubeRightEdge, yellowCubeLeftEdge, purpleCubeRightEdge, yellowCubeSize, yellowCubePosition);
         }
         else if (yellowCubeLeftEdge < purpleCubeLeftEdge)
         {
-            Debug.LogError("yellowCubeLeftEdge < purpleCubeLeftEdge");
+            // Debug.LogError("yellowCubeLeftEdge < purpleCubeLeftEdge");
+            _musicManager.PlayNormalMusic();
 
             HandleLeftOverlap(yellowCubeLeftEdge, yellowCubeRightEdge, purpleCubeLeftEdge, yellowCubeSize, yellowCubePosition);
         }
         else
         {
-            Debug.LogError("Else");
+            // Debug.LogError("Else");
+            _musicManager.PlayNormalMusic();
 
             HandlePartialOverlap(yellowCubeSize, yellowCubePosition);
         }
@@ -262,9 +273,9 @@ public class PieceController : MonoBehaviour
     private void ChangeColors()
     {
         if(stand!=null)
-        colorController.UpdateColor(stand);
+        _colorManager.UpdateColor(stand);
         if(falling!=null)
-        colorController.UpdateColor(falling);
+        _colorManager.UpdateColor(falling);
     }
     
 
@@ -307,7 +318,7 @@ public class PieceController : MonoBehaviour
 
     private void MoveToNextPosition()
     {
-        newPosition = new Vector3(last.position.x + (Random.value > 0.5f ? limit : -limit), transform.position.y, transform.position.z);
+        newPosition = new Vector3(last.position.x + (Random.value > 0.5f ? limitX : -limitX), transform.position.y, transform.position.z);
         newPosition.z += reference.localScale.z;
         transform.position = newPosition;
         transform.localScale = last.localScale;
@@ -317,6 +328,17 @@ public class PieceController : MonoBehaviour
     {
         transform.position = stand.position;
         transform.localScale = stand.localScale;
+    }
+    
+    public void GameFinished()
+    {
+        
+        DecreaseClickCount();
+
+        gameManager.DecreaseClickCount();
+
+        last = transform;
+
     }
     
     private bool IsFail()
@@ -336,21 +358,20 @@ public class PieceController : MonoBehaviour
         float currentMinX = currentBounds.min.x;
         float currentMaxX = currentBounds.max.x;
 
-        Debug.LogError("lastMinX: " + lastMinX);
-        Debug.LogError("lastMaxX: " + lastMaxX);
-        Debug.LogError("currentMinX: " + currentMinX);
-        Debug.LogError("currentMaxX: " + currentMaxX);
+        // Debug.LogError("lastMinX: " + lastMinX);
+        // Debug.LogError("lastMaxX: " + lastMaxX);
+        // Debug.LogError("currentMinX: " + currentMinX);
+        // Debug.LogError("currentMaxX: " + currentMaxX);
 
         // Küplerin çakışıp çakışmadığını kontrol et
         bool isOverlapping = (currentMaxX >= lastMinX && currentMinX <= lastMaxX);
 
-        Debug.LogError("isOverlapping: " + isOverlapping);
+        // Debug.LogError("isOverlapping: " + isOverlapping);
     
         // Çakışma yoksa fail dön
         return !isOverlapping;
     }
-
-
+    
 
     public Transform GetPieceControllerTransform()
     {

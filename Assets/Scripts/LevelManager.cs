@@ -42,7 +42,7 @@ public class LevelManager : MonoBehaviour
 
         Vector3 newPosition = new Vector3(
             pieceControllerTransform.position.x,
-            pieceControllerTransform.position.y + (finishBounds.y / 2),
+            pieceControllerTransform.position.y ,
             pieceControllerTransform.position.z +
             (pieceControllerSizeZ * (finishCount - 1)) + // finishCount kadar ileride
             (pieceControllerSizeZ / 2) + // küpün yarısı kadar daha

@@ -15,24 +15,34 @@ namespace EpicToonFX
         // Use this for initialization
         void Start()
         {
-            if (gameObject.GetComponent<Light>())
+            li = gameObject.GetComponent<Light>();
+            if (li != null)
             {
-                li = gameObject.GetComponent<Light>();
                 initIntensity = li.intensity;
+                StartCoroutine(FadeLight());
             }
             else
-                print("No light object found on " + gameObject.name);
+            {
+                Debug.LogWarning("No light object found on " + gameObject.name);
+            }
         }
 
-        // Update is called once per frame
-        void Update()
+        private IEnumerator FadeLight()
         {
-            if (gameObject.GetComponent<Light>())
+            float elapsedTime = 0f;
+
+            while (elapsedTime < life)
             {
-                li.intensity -= initIntensity * (Time.deltaTime / life);
-                if (killAfterLife && li.intensity <= 0)
-                    //Destroy(gameObject);
-					Destroy(gameObject.GetComponent<Light>());
+                li.intensity = Mathf.Lerp(initIntensity, 0, elapsedTime / life);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            li.intensity = 0;
+
+            if (killAfterLife)
+            {
+                Destroy(li);
             }
         }
     }

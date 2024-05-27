@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
+using UnityEngine.SceneManagement;
 using Zenject;
 
 public class GameManager : MonoBehaviour
@@ -21,21 +22,23 @@ public class GameManager : MonoBehaviour
     
     [Inject]
     private AnimatorController animatorController;
-    
-    private bool isGame = true;
 
+    [Inject]
+    private CameraController cameraController;
+    
+    [Inject]
+    private UIManager uıManager;
+    
     private int clickCount;
 
-    
+    private void Start()
+    {
+        SetTimeScale(1);
+    }
+
     private void Update()
     {
         CheckInput();
-    }
-
-    private bool CanMove()
-    {
-        if (clickCount <= 0) return false;
-        return true;
     }
 
     private void CheckInput()
@@ -55,6 +58,13 @@ public class GameManager : MonoBehaviour
 
         }
     }
+    private bool CanMove()
+    {
+        if (clickCount <= 0) return false;
+        return true;
+    }
+
+    
 
     public void StartNewGame()
     {
@@ -65,19 +75,35 @@ public class GameManager : MonoBehaviour
         playerMovement.StartNewGame();
 
         animatorController.StartNewGame();
+        
+        cameraController.StartNewGame();
 
+        uıManager.StartNewGame();
+        
     }
 
     public void GameFinished()
     {
+        pieceController.GameFinished();
+        
+        pathManager.GameFinished();
+
+        playerMovement.GameFinished();
+        
         animatorController.GameFinished();
+
+        cameraController.GameFinished();
+        
+        
+        uıManager.GameFinished();
+
     }
     
     
     public void GameOver()
     {
-        Debug.LogError("Game OVER");
-        isGame = false;
+        uıManager.GameOver();
+        SetTimeScale(0);
     }
 
     public void SetClickCount(int finishCount)
@@ -88,6 +114,16 @@ public class GameManager : MonoBehaviour
     public void DecreaseClickCount()
     {
         clickCount--;
+    }
+
+    public void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void SetTimeScale(int i)
+    {
+        Time.timeScale = i;
     }
     
 }
