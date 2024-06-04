@@ -7,7 +7,7 @@ This project is a game where a character walks from a starting platform to an en
 This project has been developed according to the following requirements:
 
 ### General Requirements
-- **Unity Version:** The project has been developed using either Unity 2020.3.x or 2021.3.x versions.
+- **Unity Version:** The project has been developed using either 2021.3.15 versions.
 - **Version Control:** The project has been versioned with Git from the beginning and regular commits have been made.
 - **Public Repository:** The project has been uploaded to a public platform like GitHub or Bitbucket.
 - **SOLID Principles:** The code is written according to SOLID principles.
