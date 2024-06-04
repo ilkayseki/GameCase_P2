@@ -34,3 +34,6 @@ This project has been developed according to the following requirements:
 - Zenject
 - Textmesh Pro
 - Cinemachine (BONUS)
+
+## Additional Links
+- Game Video: https://www.linkedin.com/feed/update/urn:li:ugcPost:7203712890896277505/
