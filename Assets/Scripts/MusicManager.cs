@@ -30,4 +30,12 @@ public class MusicManager : MonoBehaviour
             audioSource.Play(); // Müziği çal
         }
     }
+    
+    public void PlaySound(AudioClip clip)
+    {
+        if (!audioSource.isPlaying)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
 }

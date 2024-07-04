@@ -18,6 +18,8 @@ public class ZenjectInstaller : MonoInstaller
         Container.Bind<CameraController>().FromComponentInHierarchy().AsSingle();
         Container.Bind<MusicManager>().FromComponentInHierarchy().AsSingle();
         Container.Bind<UIManager>().FromComponentInHierarchy().AsSingle();
+        Container.Bind<CollectableManager>().FromComponentInHierarchy().AsSingle();
+        Container.Bind<ParticleManager>().FromComponentInHierarchy().AsSingle();
 
     }
 

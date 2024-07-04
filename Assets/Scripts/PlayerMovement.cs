@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
     
     public Transform currentTarget;
     
-    private bool isMoving = true;
+    private bool isMoving = false;
 
     private bool isMovingToFinish = false;
     
@@ -33,6 +33,22 @@ public class PlayerMovement : MonoBehaviour
         rigidBody = GetComponent<Rigidbody>();
     }
 
+
+    private void OnEnable()
+    {
+        LoadingManager.OnLoadingPanelClosed += StartPlayerMovement;
+    }
+
+    private void StartPlayerMovement()
+    {
+        isMoving = true;
+    }
+
+    private void OnDisable()
+    {
+        LoadingManager.OnLoadingPanelClosed -= StartPlayerMovement;
+    }
+
     void Start()
     {
         SetNextTarget();
@@ -45,7 +61,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if(rigidBody.velocity.y<-5) 
             gameManager.GameOver();
-        
     }
 
     private void IsMovingHandler(bool t)

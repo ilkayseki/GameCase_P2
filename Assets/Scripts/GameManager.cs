@@ -29,11 +29,46 @@ public class GameManager : MonoBehaviour
     [Inject]
     private UIManager uıManager;
     
+    
+    [Inject]
+    private CollectableManager collectableManager;
+    
+    
     private int clickCount;
+
+    private bool isGameReadyForStart=false;
 
     private void Start()
     {
         SetTimeScale(1);
+    }
+
+    private void OnEnable()
+    {
+        LoadingManager.OnLoadingPanelClosed += StartTheGame;
+    }
+
+    private void OnDisable()
+    {
+        LoadingManager.OnLoadingPanelClosed -= StartTheGame;
+    }
+
+    private void StartTheGame()
+    {
+        SetIsGameReadyForStart(true);
+
+        collectableManager.RandomCollectibles();
+
+    }
+
+    private bool GetIsGameReadyForStart()
+    {
+        return isGameReadyForStart;
+    }
+
+    private void SetIsGameReadyForStart(bool s)
+    {
+        isGameReadyForStart=s;
     }
 
     private void Update()
@@ -45,17 +80,11 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (CanMove())
+            if (CanMove() && GetIsGameReadyForStart())
             {
                 pieceController.OnClick();
             }
             
-        }
-
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            StartNewGame();
-
         }
     }
     private bool CanMove()
@@ -80,6 +109,8 @@ public class GameManager : MonoBehaviour
 
         uıManager.StartNewGame();
         
+        collectableManager.RandomCollectibles();
+
     }
 
     public void GameFinished()
@@ -104,6 +135,8 @@ public class GameManager : MonoBehaviour
     {
         uıManager.GameOver();
         SetTimeScale(0);
+        
+        SetIsGameReadyForStart(false);
     }
 
     public void SetClickCount(int finishCount)

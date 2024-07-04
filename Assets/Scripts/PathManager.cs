@@ -8,7 +8,7 @@ public class PathManager : MonoBehaviour
 
     public List<Transform> pivotPlatforms = new List<Transform>();
 
-    public GameObject LastPlatformFinish;
+    private GameObject LastPlatformFinish;
     
     void Awake()
     {
