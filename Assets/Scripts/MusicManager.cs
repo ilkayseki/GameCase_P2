@@ -33,9 +33,12 @@ public class MusicManager : MonoBehaviour
     
     public void PlaySound(AudioClip clip)
     {
+        audioSource.PlayOneShot(clip);
+        /*
         if (!audioSource.isPlaying)
         {
             audioSource.PlayOneShot(clip);
         }
+        */
     }
 }

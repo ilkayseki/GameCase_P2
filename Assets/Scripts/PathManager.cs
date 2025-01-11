@@ -9,6 +9,8 @@ public class PathManager : MonoBehaviour
     public List<Transform> pivotPlatforms = new List<Transform>();
 
     private GameObject LastPlatformFinish;
+
+    [SerializeField] private GameObject player;
     
     void Awake()
     {
@@ -20,6 +22,10 @@ public class PathManager : MonoBehaviour
     
     public void AddPlatform(Transform platform)
     {
+        if (player.transform.position.z>platform.position.z)
+        {
+            return;
+        }
         platforms.Enqueue(platform);
     }
 

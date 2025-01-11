@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5723d7e56cfe16d409a9d0290536ef32, type: 3}
   m_Name: Level 2
   m_EditorClassIdentifier: 
-  finishCount: 5
+  finishCount: 6

@@ -27,6 +27,11 @@ public class Collectable : MonoBehaviour, ICollectable
 
     void RotateY()
     {
+        if ((_type == CollectableType.Coin))
+        {
+            return;
+        }
+        
         var rotationDuration = 360f / _rotationSpeed;
 
         _rotationTween = transform.DORotate(new Vector3(0, 360, 0), rotationDuration, RotateMode.FastBeyond360)

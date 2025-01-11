@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using Zenject;
 
@@ -56,6 +57,8 @@ public class LevelManager : MonoBehaviour
     {
         levels = Resources.LoadAll<LevelData>("Scriptable");
 
+        levels = levels.OrderBy(level => ExtractLevelNumber(level.name)).ToArray();
+
         levelCount = 0;
 
         if (levels.Length > 0)
@@ -68,6 +71,18 @@ public class LevelManager : MonoBehaviour
         }
     }
 
+    private int ExtractLevelNumber(string levelName)
+    {
+        // "Level " ifadesinden sonra gelen numarayı al
+        string numberPart = levelName.Replace("Level ", "");
+        if (int.TryParse(numberPart, out int levelNumber))
+        {
+            return levelNumber;
+        }
+
+        // Eğer parse edilemezse varsayılan bir değer döndür
+        return int.MaxValue;
+    }
     private void SetCounts()
     {
         gameManager.SetClickCount(finishCount);
@@ -94,7 +109,8 @@ public class LevelManager : MonoBehaviour
     void LoadLevelData()
     {
         levels = Resources.LoadAll<LevelData>("Scriptable");
-
+        levels = levels.OrderBy(level => ExtractLevelNumber(level.name)).ToArray();
+        
         if (levels.Length > 0)
         {
             if (levelCount >= levels.Length) levelCount = 0;
